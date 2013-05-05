@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="static/css/style.css" rel="stylesheet">
+    <script type="text/javascript" src="static/jquery-1.6.1.min.js"></script>
+    <script type="text/javascript" src="static/socket.io.js"></script>
+    <script>    
+WEB_SOCKET_SWF_LOCATION = "/static/WebSocketMain.swf";
+WEB_SOCKET_DEBUG = true;
+
+// socket.io specific code
+var socket = io.connect();
+
+$(window).bind("beforeunload", function() {
+    socket.disconnect();
+});
+
+socket.on('connect', function () {
+    $('#chat').addClass('connected');
+    message('System', 'connected to the server');
+});
+
+
+socket.on('msg_of_server', function(data){
+	message('RECIVED', data.msg);
+});
+
+socket.on('reconnect', function () {
+    $('#lines').remove();
+    message('System', 'Reconnected to the server');
+});
+
+socket.on('reconnecting', function () {
+    message('System', 'Attempting to re-connect to the server');
+});
+
+socket.on('error', function (e) {
+    message('System', e ? e : 'A unknown error occurred');
+});
+
+function message (from, msg) {
+    $('#lines').append($('<p>').append($('<b>').text(from), msg));
+    $('#lines').get(0).scrollTop = 10000000;
+}
+
+function send_cmd(cmd){
+		message('SEND', cmd);
+	   socket.emit('cmd_send', cmd);
+	   return true;
+}
+
+function send_cmd_by_key(e){
+	
+	   if (e.keyCode) {
+	   		//c foward
+	   		if (e.keyCode == 87){
+	   			send_cmd('##FF');
+	   		}
+	   		//c back
+	   		if (e.keyCode == 83){
+	   			send_cmd('##BB');
+	   		}
+	   		//c left
+	   		if (e.keyCode == 65){
+	   			send_cmd('##LL');
+	   		}
+	   		//c right
+	   		if (e.keyCode == 68){
+	   			send_cmd('##RR');
+	   		}
+	   		//c stop
+	   		if (e.keyCode == 70){
+	   			send_cmd('##SS');
+	   		}
+	   		//e up
+	   		if (e.keyCode == 38){
+	   			send_cmd('##UL');
+	   		}
+	   		//e down
+	   		if (e.keyCode == 40){
+	   			send_cmd('##DL');
+	   		}
+	   		//e left
+	   		if (e.keyCode == 37){
+	   			send_cmd('##WL');
+	   		}
+	   		//e right
+	   		if (e.keyCode == 39){
+	   			send_cmd('##EL');
+	   		}
+	   			   		
+	   		
+	   		message('KEY', e.keyCode);
+	   }
+	   return true;
+}
+
+    </script>
+  </head>
+<body onkeydown="return send_cmd_by_key(event)">
+  <div id="chat">
+
+  </div>
+<div id="control_pad" style="float: left; width: 600px;">
+
+<div style="width: 640px;height: 480px;">
+<img src="http://192.168.1.11:7676/?action=stream" />
+</div>
+<div style="width: 640px;">
+<input type="button" value="forward" name="forward" id="forward" style="margin-left: 70px;" onclick="return send_cmd('##FF')"/><br/>
+<input type="button" value="turnleft" name="turnleft" id="turnleft" onclick="return send_cmd('##LL')"/>
+<input type="button" value="  stop  " name=" stop " id="stop" onclick="return send_cmd('##SS')"/>
+<input type="button" value="turnright" name="turnright" id="turnright" onclick="return send_cmd('##RR')"/>
+
+<br/>
+
+<input type="button" value="  back  " name="back" id="back" style="margin-left: 70px;" onclick="return send_cmd('##BB')"/>
+</div >
+</div>
+
+    <div id="messages" style="float: left; width: 300px;height: 600px;">
+      <div id="nicknames"><span>Online:</span></div>
+      <div id="lines"></div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="static/css/style.css" rel="stylesheet">
+    <script type="text/javascript" src="static/jquery-1.6.1.min.js"></script>
+    <script>    
+
+
+
+	var host = "ws://192.168.1.11:1234";
+	var socket;
+	
+jQuery(document).ready(function (){
+	if ("WebSocket" in window) {
+		message('CLIENT', 'Browser supports web sockets!');
+	}
+	
+	try{
+		socket = new WebSocket(host);
+		message('CLIENT', 'created WebSocket: '+socket.readyState);
+	}catch(e){
+		message("ERROR",e)
+	}
+	
+	socket.onopen = function () {
+	    jQuery('#chat').addClass('connected');
+	    message('System', 'connected to the server');
+	};
+	
+	
+	socket.onmessage = function(evt){
+		message('RECIVED', evt.data);
+	};
+	
+	socket.onclose   = function(evt){ message("SERVER","Lose Connection! "+evt.data); };
+
+	socket.onerror   = function(evt){ message("SERVER ERROR","Lose Connection! "+evt.data); };
+	
+	window.onbeforeunload=function(){
+		try{ 
+			socket.send('quit'); 
+			socket.close();
+			socket=null;
+			message("SERVER","CLOSE");
+		}
+		catch(ex){ 
+			message("SERVER",ex);
+		}
+	};
+	
+})
+	
+	
+	function message (from, msg) {
+		if (jQuery('#lines')){
+		    jQuery('#lines').append(jQuery('<p>').append(jQuery('<b>').text(from), msg));
+		    jQuery('#lines').get(0).scrollTop = 10000000;
+	    }
+	}
+	
+	function send_cmd(cmd){
+			message('SEND', cmd);
+		   socket.send(cmd);
+		   return true;
+	}
+	
+	function send_cmd_by_key(e){
+		
+		   if (e.keyCode) {
+		   		//c foward
+		   		if (e.keyCode == 87){
+		   			send_cmd('##FF');
+		   		}
+		   		//c back
+		   		if (e.keyCode == 83){
+		   			send_cmd('##BB');
+		   		}
+		   		//c left
+		   		if (e.keyCode == 65){
+		   			send_cmd('##LL');
+		   		}
+		   		//c right
+		   		if (e.keyCode == 68){
+		   			send_cmd('##RR');
+		   		}
+		   		//c stop
+		   		if (e.keyCode == 70){
+		   			send_cmd('##SS');
+		   		}
+		   		//e up
+		   		if (e.keyCode == 38){
+		   			send_cmd('##UL');
+		   		}
+		   		//e down
+		   		if (e.keyCode == 40){
+		   			send_cmd('##DL');
+		   		}
+		   		//e left
+		   		if (e.keyCode == 37){
+		   			send_cmd('##WL');
+		   		}
+		   		//e right
+		   		if (e.keyCode == 39){
+		   			send_cmd('##EL');
+		   		}
+		   			   		
+		   		
+		   		message('KEY', e.keyCode);
+		   }
+		   return true;
+	}
+
+    </script>
+  </head>
+<body onkeydown="return send_cmd_by_key(event)" >
+
+<div id="control_pad" >
+
+	<div style="width: 640px;height: 480px;float:left;">
+		<img src="http://192.168.1.11:7676/?action=stream" />
+	</div>
+	
+    <div id="messages" style="float: left; width: 300px;height: 480px;">
+      <div id="nicknames"><span>Online:</span></div>
+      <div id="lines"></div>
+    </div>
+</div>
+	<div style="margin-top:20px;width: 640px;">
+		<div id="carpad" style="padding: 10px;width: 220px;float: left;background-color: #dddddd;">
+			<input type="button" value="forward" name="forward" id="forward" style="margin-left: 70px;" onclick="return send_cmd('##FF')"/><br/>
+			<input type="button" value="turnleft" name="turnleft" id="turnleft" onclick="return send_cmd('##LL')"/>
+			<input type="button" value="  stop  " name=" stop " id="stop" onclick="return send_cmd('##SS')"/>
+			<input type="button" value="turnright" name="turnright" id="turnright" onclick="return send_cmd('##RR')"/>
+			<br/>		
+			<input type="button" value="  back  " name="back" id="back" style="margin-left: 70px;" onclick="return send_cmd('##BB')"/>
+			
+		</div>
+		<div id="eyepad" style="padding: 10px;width: 160px;float: right;background-color: #dddddd;">
+			<input type="button" value="look up" name="eyeup" id="eyeup" style="margin-left: 40px;" onclick="return send_cmd('##UL')"/><br/>
+			<input type="button" value="look left" name="eyeleft" id="eyeleft" onclick="return send_cmd('##WL')"/>
+			<input type="button" value="look right" name="eyeright" id="eyeright" onclick="return send_cmd('##EL')"/>
+			<br/>		
+			<input type="button" value="look down" name="eyedown" id="eyedown"  style="margin-left: 40px;"  onclick="return send_cmd('##DL')"/>
+			
+		</div>
+	</div>
+
+</body>
+</html>
